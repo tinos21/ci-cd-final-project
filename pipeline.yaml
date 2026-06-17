@@ -1,0 +1,86 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: new-pipeline
+  namespace: sn-labs-tinokoumaple
+spec:
+  params:
+    - name: repo-url
+      type: string
+    - name: app-name
+      type: string
+    - name: build-image
+      type: string
+
+  workspaces:
+    - name: output
+
+  tasks:
+    - name: cleanup
+      taskRef:
+        kind: Task
+        name: cleanup
+      workspaces:
+        - name: output
+          workspace: output
+
+    - name: git-clone
+      runAfter:
+        - cleanup
+      taskRef:
+        kind: Task
+        name: git-clone
+      params:
+        - name: url
+          value: $(params.repo-url)
+      workspaces:
+        - name: output
+          workspace: output
+
+    - name: flake8
+      runAfter:
+        - git-clone
+      taskRef:
+        kind: Task
+        name: flake8
+      workspaces:
+        - name: output
+          workspace: output
+
+    - name: nose
+      runAfter:
+        - flake8
+      taskRef:
+        kind: Task
+        name: nose
+      workspaces:
+        - name: source
+          workspace: output
+
+    - name: buildah
+      runAfter:
+        - nose
+      taskRef:
+        kind: Task
+        name: buildah
+      params:
+        - name: IMAGE
+          value: $(params.build-image)
+      workspaces:
+        - name: output
+          workspace: output
+
+    - name: deploy
+      runAfter:
+        - buildah
+      taskRef:
+        kind: Task
+        name: openshift-client
+      params:
+        - name: SCRIPT
+          value: |
+            oc create deployment $(params.app-name) \
+            --image=$(params.build-image) \
+            --dry-run=client -o yaml | oc apply -f -
+
+            
