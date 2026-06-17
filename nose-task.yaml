@@ -2,15 +2,13 @@ apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: nose
-  namespace: sn-labs-tinokoumaple
 spec:
-  params:
-  - name: args
-    type: string
-    default: -v
-
   workspaces:
   - name: output
+
+  params:
+  - name: args
+    default: -v
 
   steps:
   - name: nosetests
@@ -19,17 +17,15 @@ spec:
     script: |
       set -e
 
-      echo "=== DEBUG: listing workspace ==="
+      echo "WORKDIR CHECK:"
+      pwd
       ls -la
 
-      echo "=== installing deps ==="
+      echo "LOOKING FOR REQUIREMENTS:"
+      find . -name requirements.txt
+
       python -m pip install --upgrade pip wheel
 
-      if [ -f requirements.txt ]; then
-        pip install -r requirements.txt
-      else
-        echo "ERROR: requirements.txt not found"
-        exit 1
-      fi
+      pip install -r requirements.txt
 
       nosetests $(params.args)
