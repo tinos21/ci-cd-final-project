@@ -2,6 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: nose
+  namespace: sn-labs-tinokoumaple
 spec:
   params:
     - name: args
@@ -9,7 +10,7 @@ spec:
       default: -v
 
   workspaces:
-    - name: output   # 👈 THIS is the key fix
+    - name: output   # MUST match pipeline
 
   steps:
     - name: nosetests
