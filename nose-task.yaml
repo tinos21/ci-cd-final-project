@@ -1,0 +1,27 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: nose
+  namespace: sn-labs-tinokoumaple
+spec:
+  params:
+  - default: -v
+    description: Arguments to pass to nose
+    name: args
+    type: string
+
+  workspaces:
+  - name: output
+
+  steps:
+  - name: nosetests
+    image: python:3.9-slim
+    workingDir: $(workspaces.output.path)
+    script: |
+      #!/bin/bash
+      set -e
+      python -m pip install --upgrade pip wheel
+      pip install -r requirements.txt
+      nosetests $(params.args)
+
+      
