@@ -11,18 +11,30 @@ spec:
     default: -v
 
   steps:
-- name: nosetests
-  image: python:3.9-slim
-  workingDir: $(workspaces.output.path)/ci-cd-final-project
-  script: |
-    set -e
+  - name: nosetests
+    image: python:3.9-slim
+    workingDir: $(workspaces.output.path)
+    script: |
+      set -e
 
-    echo "WORKDIR CHECK:"
-    pwd
-    ls -la
+      echo "WORKDIR CHECK:"
+      pwd
+      ls -la
 
-    python -m pip install --upgrade pip wheel
+      echo "SEARCHING FOR REQUIREMENTS:"
+      find . -name requirements.txt
 
-    pip install -r requirements.txt
+      REQ=$(find . -name requirements.txt | head -n 1)
 
-    nosetests $(params.args)
+      if [ -z "$REQ" ]; then
+        echo "ERROR: requirements.txt not found in workspace"
+        exit 1
+      fi
+
+      python -m pip install --upgrade pip wheel
+
+      pip install -r "$REQ"
+
+      nosetests $(params.args)
+
+      
