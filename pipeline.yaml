@@ -45,8 +45,8 @@ spec:
       taskRef:
         name: nose
       workspaces:
-        - name: source
-          workspace: source
+        - name: output
+          workspace: output
       runAfter: ["flake8"]
 
     - name: buildah
@@ -71,4 +71,3 @@ spec:
             --dry-run=client -o yaml | oc apply -f -
       runAfter: ["buildah"]
 
-      
