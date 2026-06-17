@@ -5,22 +5,31 @@ metadata:
   namespace: sn-labs-tinokoumaple
 spec:
   params:
-    - name: args
-      type: string
-      default: -v
+  - name: args
+    type: string
+    default: -v
 
   workspaces:
-    - name: output   # MUST match pipeline
+  - name: output
 
   steps:
-    - name: nosetests
-      image: python:3.9-slim
-      workingDir: $(workspaces.output.path)
-      script: |
-        set -e
-        ls -la
-        python -m pip install --upgrade pip wheel
-        pip install -r requirements.txt
-        nosetests $(params.args)
+  - name: nosetests
+    image: python:3.9-slim
+    workingDir: $(workspaces.output.path)
+    script: |
+      set -e
 
-        
+      echo "=== DEBUG: listing workspace ==="
+      ls -la
+
+      echo "=== installing deps ==="
+      python -m pip install --upgrade pip wheel
+
+      if [ -f requirements.txt ]; then
+        pip install -r requirements.txt
+      else
+        echo "ERROR: requirements.txt not found"
+        exit 1
+      fi
+
+      nosetests $(params.args)
